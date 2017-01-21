@@ -1,67 +1,91 @@
 import React from 'react'
-import calculateWinner from '../calculators/calculator'
 import Square from './Square'
+import NewGame from './NewGame'
 import GameInfo from './GameInfo'
+import PlayerInfo from '../containers/PlayerInfo'
+import {cloneDeep} from 'lodash'
+import './Board.css'
 
-const Row = ({data, start, end}) =>
-  <div className='board-row col-md-4 col-md-offset-4'>
-    {data.slice(start, end)}
+let PlayersInfo = {
+  oPlayer: new PlayerInfo(),
+  xPlayer: new PlayerInfo()
+}
+
+const Row = ({children}) =>
+  <div className='board-row row'>
+    {children}
   </div>
 
 export default class extends React.Component {
   constructor () {
     super()
     this.state = {
-      squares: Array(9).fill(null),
+      squares: Array(5).fill(null).map(_ => Array(5).fill(null)),
       xIsNext: true,
-      xPlayer: {rows: [], cols: [], diagonals: []},
-      oPlayer: {rows: [], cols: [], diagonals: []}
+      winner: null
     }
   }
 
-  handleClick (i) {
-    const squares = this.state.squares.slice()
-    if (calculateWinner(squares)) {
-      this.setState({
-        squares: Array(9).fill(null),
-        xIsNext: this.state.xIsNext
-      })
+  handleClick (rowIndex, colIndex) {
+    if (this.state.winner) {
+      this.setNewGame()
       return
     }
-    if (squares[i]) {
+
+    const squares = cloneDeep(this.state.squares)
+    if (squares[rowIndex][colIndex]) {
       return
     }
-    squares[i] = this.state.xIsNext ? 'X' : 'O'
-    if (this.state.xIsNext === 'X') {
-      const rows = this.state.xPlayer.rows.slice()
-      const cols = this.state.xPlayer.cols.slice()
-      const diagonals = this.state.xPlayer.diagonals.slice()
-      this.setState({
-        squares: squares,
-        xIsNext: !this.state.xIsNext,
-        xPlayer: {}
-      })
+    let result
+    let turn = this.state.xIsNext ? 'X' : 'O'
+
+    squares[rowIndex][colIndex] = turn
+    if (turn === 'X') {
+      result = PlayersInfo.xPlayer.perform(rowIndex, colIndex)
     } else {
-      this.setState({
-        squares: squares,
-        xIsNext: !this.state.xIsNext
-      })
+      result = PlayersInfo.oPlayer.perform(rowIndex, colIndex)
     }
+
+    this.setState({
+      squares: squares,
+      xIsNext: !this.state.xIsNext,
+      winner: result ? turn : result
+    })
   }
 
-  renderSquare (value, index) {
-    return <Square key={index} value={value} onClick={() => this.handleClick(index)} />
+  setNewGame () {
+    PlayersInfo = {
+      oPlayer: new PlayerInfo(),
+      xPlayer: new PlayerInfo()
+    }
+    this.setState({
+      squares: Array(5).fill(null).map(_ => Array(5).fill(null)),
+      xIsNext: !this.state.xIsNext,
+      winner: null
+    })
   }
 
   render () {
-    const winner = calculateWinner(this.state.squares)
-    const data = this.state.squares.map((value, index) => this.renderSquare(value, index))
+    const winner = this.state.winner
+    const data = this.state.squares.map((row, rowIndex) => row.map((column, colIndex) =>
+      <Square key={colIndex} value={column} onClick={() => this.handleClick(rowIndex, colIndex)} />))
     return (
       <div>
-        <GameInfo winner={winner} xIsNext={this.state.xIsNext} />
-        <Row data={data} start={0} end={3} />
-        <Row data={data} start={3} end={6} />
-        <Row data={data} start={6} end={9} />
+        <div className='component'>
+          <GameInfo winner={winner} xIsNext={this.state.xIsNext} />
+        </div>
+
+        <div className='game-container component'>
+          <div>
+            {data.map((value, index) =>
+              <Row key={index}>{value}</Row>
+            )}
+          </div>
+        </div>
+
+        <div className='col-md-2 col-md-offset-5 component'>
+          <NewGame onClick={this.setNewGame.bind(this)} />
+        </div>
       </div>
     )
   }
