@@ -2,14 +2,11 @@ import React from 'react'
 import Square from './Square'
 import NewGame from './NewGame'
 import GameInfo from './GameInfo'
-import PlayerInfo from '../containers/PlayerInfo'
+import Game from '../containers/Game'
 import {cloneDeep} from 'lodash'
 import './Board.css'
 
-let PlayersInfo = {
-  oPlayer: new PlayerInfo(),
-  xPlayer: new PlayerInfo()
-}
+let GameContainer = new Game()
 
 const Row = ({children}) =>
   <div className='board-row row'>
@@ -41,41 +38,39 @@ export default class extends React.Component {
 
     squares[rowIndex][colIndex] = turn
     if (turn === 'X') {
-      result = PlayersInfo.xPlayer.perform(rowIndex, colIndex)
+      result = GameContainer.xPlayerMove(rowIndex, colIndex)
     } else {
-      result = PlayersInfo.oPlayer.perform(rowIndex, colIndex)
+      result = GameContainer.oPlayerMove(rowIndex, colIndex)
     }
 
     this.setState({
       squares: squares,
       xIsNext: !this.state.xIsNext,
-      winner: result ? turn : result
+      winner: result
     })
   }
 
   setNewGame () {
-    PlayersInfo = {
-      oPlayer: new PlayerInfo(),
-      xPlayer: new PlayerInfo()
-    }
+    GameContainer.newGame()
     this.setState({
       squares: Array(5).fill(null).map(_ => Array(5).fill(null)),
-      xIsNext: !this.state.xIsNext,
+      xIsNext: true,
       winner: null
     })
   }
 
   render () {
     const winner = this.state.winner
+    const statistic = {draws: GameContainer.draws, oWins: GameContainer.oWins, xWins: GameContainer.xWins}
     const data = this.state.squares.map((row, rowIndex) => row.map((column, colIndex) =>
       <Square key={colIndex} value={column} onClick={() => this.handleClick(rowIndex, colIndex)} />))
     return (
-      <div>
+      <div className='clearfix'>
         <div className='component'>
-          <GameInfo winner={winner} xIsNext={this.state.xIsNext} />
+          <GameInfo winner={winner} xIsNext={this.state.xIsNext} statistic={statistic} />
         </div>
 
-        <div className='game-container component'>
+        <div className='game-container component col-sm-12'>
           <div>
             {data.map((value, index) =>
               <Row key={index}>{value}</Row>
