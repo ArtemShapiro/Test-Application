@@ -60,14 +60,13 @@ export default class extends React.Component {
   }
 
   render () {
-    const winner = this.state.winner
-    const statistic = {draws: GameContainer.draws, oWins: GameContainer.oWins, xWins: GameContainer.xWins}
     const data = this.state.squares.map((row, rowIndex) => row.map((column, colIndex) =>
       <Square key={colIndex} value={column} onClick={() => this.handleClick(rowIndex, colIndex)} />))
+
     return (
       <div className='clearfix'>
         <div className='component'>
-          <GameInfo winner={winner} xIsNext={this.state.xIsNext} statistic={statistic} />
+          <GameInfo winner={this.state.winner} xIsNext={this.state.xIsNext} statistic={GameContainer.toStatistic()} />
         </div>
 
         <div className='game-container component col-sm-12'>

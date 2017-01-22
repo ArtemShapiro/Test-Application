@@ -37,6 +37,10 @@ class Game {
       return false
     }
   }
+
+  toStatistic () {
+    return {draws: this.draws, oWins: this.oWins, xWins: this.xWins}
+  }
 }
 
 export default Game
