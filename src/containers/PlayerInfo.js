@@ -12,7 +12,8 @@ class PlayerInfo {
 
     if (colIndex === rowIndex) {
       diagonalResult = this.incrementDiagonal(0)
-    } else if (rowIndex + colIndex === 4) {
+    }
+    if (rowIndex + colIndex === 4) {
       diagonalResult = this.incrementDiagonal(1)
     }
 
